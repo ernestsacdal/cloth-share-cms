@@ -62,7 +62,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Stats Section
       <section className="py-16 px-4 bg-muted/50">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
@@ -80,10 +80,10 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-20 px-4">
+      <section id="how-it-works" className="py-20 px-4 bg-muted/50">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-balance mb-4 text-foreground">How ClothShare Works</h2>
@@ -130,7 +130,7 @@ export default function LandingPage() {
       </section>
 
       {/* Community Section */}
-      <section id="community" className="py-20 px-4 bg-muted/50">
+      <section id="community" className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <div className="flex items-center justify-center gap-2 mb-6">
             <Users className="h-8 w-8 text-accent" />
@@ -167,7 +167,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border py-12 px-4">
+      <footer className="border-t border-border py-12 px-4 bg-muted/50">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
@@ -191,7 +191,7 @@ export default function LandingPage() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/community" className="hover:text-foreground">
+                  <Link href="" className="hover:text-foreground">
                     Community
                   </Link>
                 </li>
@@ -201,17 +201,17 @@ export default function LandingPage() {
               <h4 className="font-semibold mb-3">Support</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <Link href="/help" className="hover:text-foreground">
+                  <Link href="" className="hover:text-foreground">
                     Help Center
                   </Link>
                 </li>
                 <li>
-                  <Link href="/safety" className="hover:text-foreground">
+                  <Link href="" className="hover:text-foreground">
                     Safety Guidelines
                   </Link>
                 </li>
                 <li>
-                  <Link href="/contact" className="hover:text-foreground">
+                  <Link href="" className="hover:text-foreground">
                     Contact Us
                   </Link>
                 </li>
@@ -221,20 +221,20 @@ export default function LandingPage() {
               <h4 className="font-semibold mb-3">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <Link href="/privacy" className="hover:text-foreground">
+                  <Link href="" className="hover:text-foreground">
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link href="/terms" className="hover:text-foreground">
+                  <Link href="" className="hover:text-foreground">
                     Terms of Service
                   </Link>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 ClothShare. All rights reserved.</p>
+          <div className="border-t border-border mt-8 pt-8 text-center te~~xt-sm text-muted-foreground">
+            <p>&copy; 2025 ClothShare. All rights reserved.</p>
           </div>
         </div>
       </footer>
