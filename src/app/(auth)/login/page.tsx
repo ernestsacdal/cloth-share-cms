@@ -11,7 +11,6 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Shirt } from "lucide-react"
 
-
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -19,7 +18,25 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setIsLoading(true)
 
+    try {
+      // Your authentication logic here
+      // Example: await signIn(email, password)
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // After successful login, redirect to browse page
+      router.push("/browse")
+    } catch (err) {
+      setError("Invalid email or password")
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-muted/50 flex flex-col">
@@ -34,11 +51,11 @@ export default function LoginPage() {
               <Shirt className="h-8 w-8 text-accent" />
               <span className="text-2xl font-bold">ClothShare</span>
             </Link>
-            <CardTitle className="text-xl">Welcome Back!</CardTitle>
+            <CardTitle className="text-2xl">Welcome Back</CardTitle>
             <CardDescription>Sign in to your account to continue sharing</CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -48,6 +65,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="border-2 focus-visible:ring-1"
                 />
               </div>
               <div className="space-y-2">
@@ -59,6 +77,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="border-2 focus-visible:ring-1"
                 />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
