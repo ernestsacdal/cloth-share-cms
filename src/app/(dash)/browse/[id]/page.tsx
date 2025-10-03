@@ -7,7 +7,6 @@ import { Shirt, ArrowLeft, MapPin, Calendar, Heart, MessageCircle, Flag, Share2,
 import Link from "next/link"
 import Image from "next/image"
 
-// Mock data for individual item
 const clothingItem = {
   id: 1,
   title: "Vintage Denim Jacket",
