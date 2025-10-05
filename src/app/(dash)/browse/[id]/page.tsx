@@ -1,11 +1,25 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { Shirt, ArrowLeft, MapPin, Calendar, Heart, MessageCircle, Flag, Share2, User } from "lucide-react"
+import { Shirt, ArrowLeft, MapPin, Calendar, Heart, MessageCircle, Flag, Share2, User, Loader2 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 
 const clothingItem = {
   id: 1,
@@ -13,9 +27,9 @@ const clothingItem = {
   size: "M",
   condition: "Like New",
   location: "Downtown",
-  distance: "0.5 miles",
+  distance: "Downtown Coffee Shop",
   postedBy: "Sarah M.",
-  postedDate: "2 days ago",
+  postedDate: "10/5/2025",
   image: "/vintage-denim-jacket.png",
   images: ["/vintage-denim-jacket-front.png", "/vintage-denim-jacket-back.png", "/vintage-denim-jacket-detail.png"],
   category: "Jackets",
@@ -39,22 +53,50 @@ const clothingItem = {
 }
 
 export default function ItemDetailPage({ params }: { params: { id: string } }) {
+
+  const router = useRouter()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [message, setMessage] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+
+  const listing = clothingItem
+  const averageRating = 4.5
+
+  const handleSubmitRequest = async () => {
+    if (!message.trim()) return
+
+    setIsSubmitting(true)
+
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+
+    setIsSubmitting(false)
+    setIsModalOpen(false)
+    setShowSuccess(true)
+
+    // Hide success message after 3 seconds
+    setTimeout(() => {
+      setShowSuccess(false)
+      setMessage("")
+    }, 3000)
+  }
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/browse" className="flex items-center gap-2">
               <Shirt className="h-8 w-8 text-accent" />
               <span className="text-2xl font-bold text-foreground">ClothShare</span>
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm">
+            {/* <Button variant="ghost" size="sm">
               <Heart className="h-4 w-4 mr-2" />
               Save
-            </Button>
+            </Button> */}
             <Button variant="ghost" size="sm">
               <Share2 className="h-4 w-4 mr-2" />
               Share
@@ -122,7 +164,7 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
               <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                 <div className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
-                  <span>{clothingItem.distance} away</span>
+                  <span>{clothingItem.location}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
@@ -217,18 +259,65 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
 
             {/* Action Buttons */}
             <div className="flex gap-3">
-              <Button className="flex-1" size="lg">
+              <Button className="flex-1" size="lg" onClick={() => setIsModalOpen(true)}>
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Claim This Item
               </Button>
-              <Button variant="outline" size="lg">
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Message Owner
+              <Button variant="outline" size="lg" asChild>
+                <Link href={`/messages?userId=${listing.id}&itemId=${listing.id}&itemName=${encodeURIComponent(listing.title)}`}>
+                  <span className="flex items-center">
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Message
+                  </span>
+                </Link>
               </Button>
+
             </div>
           </div>
         </div>
       </div>
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="">
+          <DialogHeader>
+            <DialogTitle>Request Item</DialogTitle>
+            <DialogDescription>
+              Send a message to {listing.user?.name} to request this item. Include why you'd like it and
+              when you can pick it up.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="message">Your Message</Label>
+              <Textarea
+                id="message"
+                placeholder="Hi! I'm interested in this item. I can pick it up this weekend..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={6}
+                className="resize-none"
+              />
+              <p className="text-sm text-muted-foreground">{message.length}/500 characters</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmitRequest} disabled={!message.trim() || isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                "Send Request"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
     </div>
   )
 }
