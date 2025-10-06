@@ -178,36 +178,40 @@ export default function BrowsePage() {
             )}
           </div>
           <div className="flex items-center gap-3">
-            {isAuthenticated ? (
+            {!isLoading && (
               <>
-                <NotificationsDropdown />
-                <Button variant="ghost" size="sm" asChild className="md:hidden">
-                  <Link href="/messages">
-                    <MessageCircle className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="sm" asChild className="md:hidden">
-                  <Link href="/items">
-                    <Package className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/favorites">
-                    <Heart className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Favorites</span>
-                  </Link>
-                </Button>
-                                    <AccountDropdown />
+                {isAuthenticated ? (
+                  <>
+                    <NotificationsDropdown />
+                    <Button variant="ghost" size="sm" asChild className="md:hidden">
+                      <Link href="/messages">
+                        <MessageCircle className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild className="md:hidden">
+                      <Link href="/items">
+                        <Package className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href="/favorites">
+                        <Heart className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Favorites</span>
+                      </Link>
+                    </Button>
+                    <AccountDropdown />
 
-              </>
-            ) : (
-              <>
-                <Button variant="ghost" asChild>
-                  <Link href="/login">Sign In</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/signup">Get Started</Link>
-                </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost" asChild>
+                      <Link href="/login">Sign In</Link>
+                    </Button>
+                    <Button asChild>
+                      <Link href="/signup">Get Started</Link>
+                    </Button>
+                  </>
+                )}
               </>
             )}
           </div>
