@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Shirt, User, Check, X, Clock, ArrowLeft, ChevronRight, MessageSquare, ShieldCheck } from "lucide-react"
+import { Shirt, User, Check, X, Clock, ArrowLeft, ChevronRight, MessageSquare, ShieldCheck, Heart } from "lucide-react"
 import Link from "next/link"
 import { NotificationsDropdown } from "@/components/notifications-dropdown"
 import Image from "next/image"
+import { AccountDropdown } from "@/components/account-dropdown"
+
 
 interface ItemWithRequests {
   id: string
@@ -187,11 +189,12 @@ export default function ItemManagementPage() {
           <div className="flex items-center gap-3">
             <NotificationsDropdown />
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/profile">
-                <User className="h-4 w-4 mr-2" />
-                Account
+              <Link href="/favorites">
+                <Heart className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Favorites</span>
               </Link>
             </Button>
+            <AccountDropdown />
           </div>
         </div>
       </header>

@@ -167,7 +167,7 @@ export default function FavoritesPage() {
 
   function removeFavorite(favoriteId: string) {
     // Filter out the removed favorite from state
-    setFavorites((prevFavorites) => 
+    setFavorites((prevFavorites) =>
       prevFavorites.filter((fav) => fav.id !== favoriteId)
     )
   }
@@ -186,11 +186,12 @@ export default function FavoritesPage() {
           <div className="flex items-center gap-3">
             <NotificationsDropdown />
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/profile">
-                <User className="h-4 w-4 mr-2" />
-                Account
+              <Link href="/favorites">
+                <Heart className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Favorites</span>
               </Link>
             </Button>
+            <AccountDropdown />
           </div>
         </div>
       </header>

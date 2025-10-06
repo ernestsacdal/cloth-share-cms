@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Shirt, User, Send, ArrowLeft } from "lucide-react"
+import { Shirt, User, Send, ArrowLeft, Heart } from "lucide-react"
 import Link from "next/link"
 import { NotificationsDropdown } from "@/components/notifications-dropdown"
 import { AccountDropdown } from "@/components/account-dropdown"
@@ -277,11 +277,12 @@ export default function MessagesPage() {
           <div className="flex items-center gap-3">
             <NotificationsDropdown />
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/profile">
-                <User className="h-4 w-4 mr-2" />
-                Account
+              <Link href="/favorites">
+                <Heart className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Favorites</span>
               </Link>
             </Button>
+            <AccountDropdown />
           </div>
         </div>
       </header>
@@ -317,9 +318,8 @@ export default function MessagesPage() {
                       setSelectedConversation(conv.user_id)
                       loadMessages(conv.user_id)
                     }}
-                    className={`w-full p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left ${
-                      selectedConversation === conv.user_id ? "bg-muted" : ""
-                    }`}
+                    className={`w-full p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left ${selectedConversation === conv.user_id ? "bg-muted" : ""
+                      }`}
                   >
                     <Avatar>
                       <AvatarImage src={conv.user_avatar || undefined} />
@@ -360,13 +360,12 @@ export default function MessagesPage() {
                       className={`flex ${message.sender_id === currentUserId ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[70%] rounded-lg p-3 ${
-                          message.is_item_reference
+                        className={`max-w-[70%] rounded-lg p-3 ${message.is_item_reference
                             ? "bg-muted border-2 border-accent/50"
                             : message.sender_id === currentUserId
                               ? "bg-accent text-white"
                               : "bg-muted"
-                        }`}
+                          }`}
                       >
                         {message.is_item_reference && (
                           <p className="text-xs font-semibold text-accent mb-1">📦 Item Reference</p>
