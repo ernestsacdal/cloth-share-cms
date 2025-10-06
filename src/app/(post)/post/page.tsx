@@ -94,43 +94,44 @@ export default function PostPage() {
     }
   }
 
-  const handleSubmit = async () => {
-    try {
-      setIsSubmitting(true)
-      setError(null)
+ const handleSubmit = async () => {
+  try {
+    setIsSubmitting(true)
+    setError(null)
 
-      // Prepare data for API
-      const itemData: itemsApi.CreateItemData = {
-        title: formData.title,
-        brand: formData.brand || undefined,
-        description: formData.description,
-        category: formData.category,
-        size: formData.size,
-        condition: formData.condition,
-        color: formData.color || undefined,
-        measurementChest: formData.measurements.chest || undefined,
-        measurementLength: formData.measurements.length || undefined,
-        measurementSleeves: formData.measurements.sleeves || undefined,
-        images: formData.photos,
-        pickupLocation: formData.pickupLocation,
-        pickupInstructions: formData.pickupInstructions || undefined,
-        availability: formData.availability,
-        meetingPreference: formData.meetingPreference || undefined,
-      }
-
-      // Create item
-      const createdItem = await itemsApi.createItem(itemData)
-
-      // Redirect to item detail page
-      router.push(`/browse/success`)
-    } catch (err: any) {
-      console.error('Error creating item:', err)
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to create item'
-      setError(errorMessage)
-    } finally {
-      setIsSubmitting(false)
+    // Prepare data for API
+    const itemData: itemsApi.CreateItemData = {
+      title: formData.title,
+      brand: formData.brand || undefined,
+      description: formData.description,
+      category: formData.category,
+      size: formData.size,
+      condition: formData.condition,
+      color: formData.color || undefined,
+      measurementChest: formData.measurements.chest || undefined,
+      measurementLength: formData.measurements.length || undefined,
+      measurementSleeves: formData.measurements.sleeves || undefined,
+      images: formData.photos,
+      pickupLocation: formData.pickupLocation,
+      pickupInstructions: formData.pickupInstructions || undefined,
+      availability: formData.availability,
+      meetingPreference: formData.meetingPreference || undefined,
     }
+
+    // Create item
+    const createdItem = await itemsApi.createItem(itemData)
+
+    // Redirect to success page with item data
+    router.push(`/post/success?itemId=${createdItem.id}`)
+  } catch (err: any) {
+    console.error('Error creating item:', err)
+    const errorMessage = err.response?.data?.message || err.message || 'Failed to create item'
+    setError(errorMessage)
+  } finally {
+    setIsSubmitting(false)
   }
+}
+
 
   // Loading state
   if (isLoading) {

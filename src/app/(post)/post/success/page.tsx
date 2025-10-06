@@ -1,10 +1,49 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Shirt, Check, Share2, Eye, MessageCircle, ArrowRight } from "lucide-react"
+import { Shirt, Check, Share2, Eye, MessageCircle, ArrowRight, Loader2 } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
+import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
+import * as itemsApi from "@/lib/api/items"
 
 export default function PostSuccessPage() {
+  const searchParams = useSearchParams()
+  const itemId = searchParams.get('itemId')
+  const [item, setItem] = useState<itemsApi.Item | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchItem = async () => {
+      if (!itemId) {
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        const itemData = await itemsApi.getItemById(itemId)
+        setItem(itemData)
+      } catch (error) {
+        console.error('Error fetching item:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchItem()
+  }, [itemId])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -25,45 +64,60 @@ export default function PostSuccessPage() {
 
         {/* Success Message */}
         <h1 className="text-4xl font-bold text-foreground mb-4">Item Posted Successfully!</h1>
-        {/* <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+        <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
           Your item is now live on ClothShare. The community can discover and claim it right away.
-        </p> */}
+        </p>
 
         {/* Item Preview Card */}
-        <Card className="mb-8 text-left">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">Your Posted Item</CardTitle>
-                <CardDescription>Now visible to the community</CardDescription>
+        {item && (
+          <Card className="mb-8 text-left">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Your Posted Item</CardTitle>
+                  <CardDescription>Now visible to the community</CardDescription>
+                </div>
+                <Badge variant="secondary" className="bg-accent/10 text-accent">
+                  Live
+                </Badge>
               </div>
-              <Badge variant="secondary" className="bg-accent/10 text-accent">
-                Live
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                <Shirt className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-medium">Vintage Denim Jacket</h3>
-                <p className="text-sm text-muted-foreground">Size M • Like New • Jackets</p>
-                <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Eye className="h-3 w-3" />
-                    <span>0 views</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MessageCircle className="h-3 w-3" />
-                    <span>0 interested</span>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-muted rounded-lg overflow-hidden relative">
+                  {item.images[0] ? (
+                    <Image
+                      src={item.images[0]}
+                      alt={item.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Shirt className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Size {item.size} • {item.condition.replace(/_/g, ' ')} • {item.category}
+                  </p>
+                  <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Eye className="h-3 w-3" />
+                      <span>{item.views} views</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MessageCircle className="h-3 w-3" />
+                      <span>{item.interestedCount} interested</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* What's Next */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -94,10 +148,14 @@ export default function PostSuccessPage() {
               <ArrowRight className="h-4 w-4 ml-2" />
             </Link>
           </Button>
-          <Button variant="outline" size="lg">
-            <Share2 className="h-4 w-4 mr-2" />
-            Share Your Listing
-          </Button>
+          {item && (
+            <Button variant="outline" size="lg" asChild>
+              <Link href={`/browse/${item.id}`}>
+                <Eye className="h-4 w-4 mr-2" />
+                View Your Item
+              </Link>
+            </Button>
+          )}
           <Button variant="outline" size="lg" asChild>
             <Link href="/post">Post Another Item</Link>
           </Button>
