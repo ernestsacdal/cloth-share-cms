@@ -34,7 +34,7 @@ export default function PostPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -82,7 +82,7 @@ export default function PostPage() {
       setError("Please fill in pickup location and select at least one availability time")
       return
     }
-    
+
     setError(null)
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1)
@@ -96,43 +96,43 @@ export default function PostPage() {
     }
   }
 
- const handleSubmit = async () => {
-  try {
-    setIsSubmitting(true)
-    setError(null)
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true)
+      setError(null)
 
-    // Prepare data for API
-    const itemData: itemsApi.CreateItemData = {
-      title: formData.title,
-      brand: formData.brand || undefined,
-      description: formData.description,
-      category: formData.category,
-      size: formData.size,
-      condition: formData.condition,
-      color: formData.color || undefined,
-      measurementChest: formData.measurements.chest || undefined,
-      measurementLength: formData.measurements.length || undefined,
-      measurementSleeves: formData.measurements.sleeves || undefined,
-      images: formData.photos,
-      pickupLocation: formData.pickupLocation,
-      pickupInstructions: formData.pickupInstructions || undefined,
-      availability: formData.availability,
-      meetingPreference: formData.meetingPreference || undefined,
+      // Prepare data for API
+      const itemData: itemsApi.CreateItemData = {
+        title: formData.title,
+        brand: formData.brand || undefined,
+        description: formData.description,
+        category: formData.category,
+        size: formData.size,
+        condition: formData.condition,
+        color: formData.color || undefined,
+        measurementChest: formData.measurements.chest || undefined,
+        measurementLength: formData.measurements.length || undefined,
+        measurementSleeves: formData.measurements.sleeves || undefined,
+        images: formData.photos,
+        pickupLocation: formData.pickupLocation,
+        pickupInstructions: formData.pickupInstructions || undefined,
+        availability: formData.availability,
+        meetingPreference: formData.meetingPreference || undefined,
+      }
+
+      // Create item
+      const createdItem = await itemsApi.createItem(itemData)
+
+      // Redirect to success page with item data
+      router.push(`/post/success?itemId=${createdItem.id}`)
+    } catch (err: any) {
+      console.error('Error creating item:', err)
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to create item'
+      setError(errorMessage)
+    } finally {
+      setIsSubmitting(false)
     }
-
-    // Create item
-    const createdItem = await itemsApi.createItem(itemData)
-
-    // Redirect to success page with item data
-    router.push(`/post/success?itemId=${createdItem.id}`)
-  } catch (err: any) {
-    console.error('Error creating item:', err)
-    const errorMessage = err.response?.data?.message || err.message || 'Failed to create item'
-    setError(errorMessage)
-  } finally {
-    setIsSubmitting(false)
   }
-}
 
 
   // Loading state
@@ -202,18 +202,16 @@ export default function PostPage() {
               {steps.map((step) => (
                 <div
                   key={step.id}
-                  className={`flex flex-col items-center text-center ${
-                    step.id <= currentStep ? "text-foreground" : "text-muted-foreground"
-                  }`}
+                  className={`flex flex-col items-center text-center ${step.id <= currentStep ? "text-foreground" : "text-muted-foreground"
+                    }`}
                 >
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mb-2 ${
-                      step.id < currentStep
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mb-2 ${step.id < currentStep
                         ? "bg-accent text-accent-foreground"
                         : step.id === currentStep
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted text-muted-foreground"
-                    }`}
+                      }`}
                   >
                     {step.id < currentStep ? <Check className="h-4 w-4" /> : step.id}
                   </div>
@@ -313,7 +311,14 @@ export default function PostPage() {
                         <SelectItem value="XL">XL</SelectItem>
                         <SelectItem value="XXL">XXL</SelectItem>
                         <SelectItem value="ONE_SIZE">One Size</SelectItem>
+                        <SelectItem value="SIZE_7">7</SelectItem>
+                        <SelectItem value="SIZE_8">8</SelectItem>
+                        <SelectItem value="SIZE_9">9</SelectItem>
+                        <SelectItem value="SIZE_10">10</SelectItem>
+                        <SelectItem value="SIZE_30">30</SelectItem>
+                        <SelectItem value="SIZE_32">32</SelectItem>
                       </SelectContent>
+
                     </Select>
                   </div>
                   <div className="space-y-2">
@@ -327,8 +332,7 @@ export default function PostPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="LIKE_NEW">Like New</SelectItem>
-                        <SelectItem value="EXCELLENT">Excellent</SelectItem>
-                        <SelectItem value="VERY_GOOD">Very Good</SelectItem>
+                        <SelectItem value="VERY_GOOD">Excellent</SelectItem>
                         <SelectItem value="GOOD">Good</SelectItem>
                         <SelectItem value="FAIR">Fair</SelectItem>
                       </SelectContent>

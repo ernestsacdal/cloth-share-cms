@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator"
 import { Shirt, ArrowLeft, MapPin, Calendar, MessageCircle, Flag, Share2, User, Loader2, Clock } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -23,9 +23,13 @@ import { Label } from "@/components/ui/label"
 import { useAuth } from "@/contexts/AuthContext"
 import * as itemsApi from "@/lib/api/items"
 
-export default function ItemDetailPage({ params }: { params: { id: string } }) {
-  const { isAuthenticated } = useAuth()
+export default function ItemDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { isAuthenticated, user: authUser, isLoading: authLoading } = useAuth()
   const router = useRouter()
+  
+  // Unwrap params using React.use()
+  const { id } = use(params)
+  
   const [item, setItem] = useState<itemsApi.Item | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -34,8 +38,13 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string>("")
 
+  // Check if current user is the owner
+  const isOwner = authUser?.id === item?.userId
+
   // Fetch item data
   useEffect(() => {
+    if (authLoading) return
+    
     if (!isAuthenticated) {
       router.push('/login')
       return
@@ -45,7 +54,7 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
       try {
         setIsLoading(true)
         setError(null)
-        const itemData = await itemsApi.getItemById(params.id)
+        const itemData = await itemsApi.getItemById(id)
         setItem(itemData)
         setSelectedImage(itemData.images[0])
       } catch (err) {
@@ -57,7 +66,7 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
     }
 
     fetchItem()
-  }, [params.id, isAuthenticated, router])
+  }, [id, isAuthenticated, authLoading, router])
 
   const handleSubmitRequest = async () => {
     if (!message.trim()) return
@@ -70,22 +79,22 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
     setIsSubmitting(false)
     setIsModalOpen(false)
     setMessage("")
-    
+
     // Show success notification or redirect
     alert('Request sent successfully!')
   }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     })
   }
 
   // Loading state
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -184,6 +193,7 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
                   <div className="flex items-center gap-2 mb-3 flex-wrap">
                     {item.brand && <Badge variant="secondary">{item.brand}</Badge>}
                     <Badge variant="outline">{item.category}</Badge>
+                    {isOwner && <Badge variant="default" className="bg-accent">Your Item</Badge>}
                   </div>
                 </div>
                 <Button variant="outline" size="sm">
@@ -229,7 +239,7 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
                     <span className="font-medium">{item.color}</span>
                   </div>
                 )}
-                
+
                 {/* Measurements */}
                 {(item.measurementChest || item.measurementLength || item.measurementSleeves) && (
                   <>
@@ -285,7 +295,7 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
                     <p className="text-sm text-muted-foreground">{item.pickupLocation}</p>
                   </div>
                 </div>
-                
+
                 {item.pickupInstructions && (
                   <div className="flex items-start gap-2">
                     <Clock className="h-4 w-4 mt-1 text-muted-foreground" />
@@ -295,7 +305,7 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
                     </div>
                   </div>
                 )}
-                
+
                 {item.availability && item.availability.length > 0 && (
                   <div className="flex items-start gap-2">
                     <Clock className="h-4 w-4 mt-1 text-muted-foreground" />
@@ -311,7 +321,7 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
                     </div>
                   </div>
                 )}
-                
+
                 {item.meetingPreference && (
                   <div className="flex items-start gap-2">
                     <MapPin className="h-4 w-4 mt-1 text-muted-foreground" />
@@ -332,83 +342,119 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
                 <CardTitle className="text-lg">Shared by</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={item.user?.avatar || undefined} />
-                    <AvatarFallback>
-                      <User className="h-6 w-6" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <h4 className="font-medium">{item.user?.displayName || 'Anonymous'}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Member since {formatDate(item.createdAt)}
-                    </p>
+                {isOwner ? (
+                  // If it's your item, show non-clickable "You"
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={item.user?.avatar || "/diverse-woman-avatar.png"} />
+                      <AvatarFallback>
+                        <User className="h-6 w-6" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <h4 className="font-medium">You</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Member since {formatDate(item.createdAt)}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  // If it's someone else's item, make it clickable
+                  <Link
+                    href={`/profile/${item.userId}`}
+                    className="flex items-center gap-4 hover:bg-accent/5 p-2 rounded-lg transition-colors -m-2"
+                  >
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={item.user?.avatar || "/diverse-woman-avatar.png"} />
+                      <AvatarFallback>
+                        <User className="h-6 w-6" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <h4 className="font-medium hover:text-accent transition-colors">
+                        {item.user?.displayName || 'Anonymous'}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        Member since {formatDate(item.createdAt)}
+                      </p>
+                    </div>
+                  </Link>
+                )}
               </CardContent>
             </Card>
 
-            {/* Action Buttons */}
+            {/* Action Buttons - Conditional based on ownership */}
             <div className="flex gap-3">
-              <Button className="flex-1" size="lg" onClick={() => setIsModalOpen(true)}>
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Claim This Item
-              </Button>
-              <Button variant="outline" size="lg" asChild>
-                <Link
-                  href={`/messages?userId=${item.userId}&itemId=${item.id}&itemName=${encodeURIComponent(item.title)}`}
-                >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Message
-                </Link>
-              </Button>
+              {isOwner ? (
+                // Owner buttons
+                <Button variant="outline" size="lg" className="flex-1">
+                  Manage Item
+                </Button>
+              ) : (
+                // Non-owner buttons
+                <>
+                  <Button className="flex-1" size="lg" onClick={() => setIsModalOpen(true)}>
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Claim This Item
+                  </Button>
+                  <Button variant="outline" size="lg" asChild>
+                    <Link
+                      href={`/messages?userId=${item.userId}&itemId=${item.id}&itemName=${encodeURIComponent(item.title)}`}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Message
+                    </Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Claim Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Request Item</DialogTitle>
-            <DialogDescription>
-              Send a message to {item.user?.displayName || 'the owner'} to request this item. Include why
-              you&apos;d like it and when you can pick it up.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="message">Your Message</Label>
-              <Textarea
-                id="message"
-                placeholder="Hi! I'm interested in this item. I can pick it up this weekend..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                rows={6}
-                className="resize-none"
-              />
-              <p className="text-sm text-muted-foreground">{message.length}/500 characters</p>
+      {/* Claim Modal - Only show for non-owners */}
+      {!isOwner && (
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Request Item</DialogTitle>
+              <DialogDescription>
+                Send a message to {item.user?.displayName || 'the owner'} to request this item. Include why
+                you&apos;d like it and when you can pick it up.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="message">Your Message</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Hi! I'm interested in this item. I can pick it up this weekend..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={6}
+                  className="resize-none"
+                />
+                <p className="text-sm text-muted-foreground">{message.length}/500 characters</p>
+              </div>
             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button onClick={handleSubmitRequest} disabled={!message.trim() || isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                "Send Request"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button onClick={handleSubmitRequest} disabled={!message.trim() || isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Send Request"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

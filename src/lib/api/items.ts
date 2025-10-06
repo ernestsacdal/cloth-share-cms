@@ -54,6 +54,7 @@ export interface ItemFilters {
   condition?: string;
   search?: string;
   status?: string;
+userId?: string; 
 }
 
 // Get all items with filters
@@ -106,5 +107,10 @@ export const deleteItem = async (id: string): Promise<void> => {
 // Get current user's items
 export const getMyItems = async (): Promise<Item[]> => {
   const response = await apiClient.get('/items/my/items');
+  return response.data.data;
+};
+
+export const getUserItems = async (userId: string): Promise<Item[]> => {
+  const response = await apiClient.get(`/items/user/${userId}`);
   return response.data.data;
 };
