@@ -122,7 +122,7 @@ export default function PostPage() {
       const createdItem = await itemsApi.createItem(itemData)
 
       // Redirect to item detail page
-      router.push(`/browse/${createdItem.id}`)
+      router.push(`/browse/success`)
     } catch (err: any) {
       console.error('Error creating item:', err)
       const errorMessage = err.response?.data?.message || err.message || 'Failed to create item'
