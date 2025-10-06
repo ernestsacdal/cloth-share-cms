@@ -1,10 +1,16 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Heart, Recycle, Users, ArrowRight, Shirt, Package, MapPin } from "lucide-react"
+import { Heart, Recycle, Users, ArrowRight, Shirt, Package, MapPin, MessageCircle, UserIcon } from "lucide-react"
 import Link from "next/link"
+import { useAuth } from "@/contexts/AuthContext"
+import { NotificationsDropdown } from "@/components/notifications-dropdown"
 
 export default function LandingPage() {
+  
+  const { isAuthenticated, user, isLoading  } = useAuth();
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -14,27 +20,81 @@ export default function LandingPage() {
             <Shirt className="h-8 w-8 text-accent" />
             <span className="text-2xl font-bold text-foreground">ClothShare</span>
           </div>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
-              How it Works
-            </Link>
-            <Link href="#community" className="text-muted-foreground hover:text-foreground transition-colors">
-              Community
-            </Link>
-            <Link href="#about" className="text-muted-foreground hover:text-foreground transition-colors">
-              About
-            </Link>
-          </nav>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup">Get Started</Link>
-            </Button>
-          </div>
+
+          {!isLoading && (
+            <>
+              {isAuthenticated ? (
+                // Logged in navigation
+                <>
+                  <nav className="hidden md:flex items-center gap-6">
+                    <Link href="/browse" className="text-muted-foreground hover:text-foreground transition-colors">
+                      Browse
+                    </Link>
+                    <Link href="/post" className="text-muted-foreground hover:text-foreground transition-colors">
+                      Post
+                    </Link>
+                    <Link href="/items" className="text-muted-foreground hover:text-foreground transition-colors">
+                      Items
+                    </Link>
+                    <Link href="/messages" className="text-muted-foreground hover:text-foreground transition-colors">
+                      Messages
+                    </Link>
+                  </nav>
+                  <div className="flex items-center gap-3">
+                    <NotificationsDropdown />
+                    <Button variant="ghost" size="sm" asChild className="md:hidden">
+                      <Link href="/messages">
+                        <MessageCircle className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild className="md:hidden">
+                      <Link href="/items">
+                        <Package className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href="/favorites">
+                        <Heart className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Favorites</span>
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href="/profile">
+                        <UserIcon className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Account</span>
+                      </Link>
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                // Not logged in navigation
+                <>
+                  <nav className="hidden md:flex items-center gap-6">
+                    <Link href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
+                      How it Works
+                    </Link>
+                    <Link href="#community" className="text-muted-foreground hover:text-foreground transition-colors">
+                      Community
+                    </Link>
+                    <Link href="#about" className="text-muted-foreground hover:text-foreground transition-colors">
+                      About
+                    </Link>
+                  </nav>
+                  <div className="flex items-center gap-3">
+                    <Button variant="ghost" asChild>
+                      <Link href="/login">Sign In</Link>
+                    </Button>
+                    <Button asChild>
+                      <Link href="/signup">Get Started</Link>
+                    </Button>
+                  </div>
+                </>
+              )}
+            </>
+          )}
         </div>
       </header>
+
 
       {/* Hero Section */}
       <section className="py-20 px-4">
