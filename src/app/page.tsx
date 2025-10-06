@@ -10,7 +10,7 @@ import { NotificationsDropdown } from "@/components/notifications-dropdown"
 
 export default function LandingPage() {
   
-  const { isAuthenticated, user, isLoading  } = useAuth();
+  const { isAuthenticated, isLoading  } = useAuth();
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
