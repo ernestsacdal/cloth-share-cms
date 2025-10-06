@@ -477,8 +477,8 @@ export default function PostPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="PUBLIC_PLACE">Public place (coffee shop, mall, etc.)</SelectItem>
-                      <SelectItem value="MY_PLACE">My doorstep/building entrance</SelectItem>
-                      <SelectItem value="YOUR_PLACE">Near my workplace</SelectItem>
+                      <SelectItem value="DOORSTEP">My doorstep/building entrance</SelectItem>
+                      <SelectItem value="WORKPLACE">Near my workplace</SelectItem>
                       <SelectItem value="FLEXIBLE">I'm flexible</SelectItem>
                     </SelectContent>
                   </Select>
