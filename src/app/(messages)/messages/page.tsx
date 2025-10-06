@@ -8,6 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Shirt, User, Send, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { NotificationsDropdown } from "@/components/notifications-dropdown"
+import { AccountDropdown } from "@/components/account-dropdown"
+
 
 interface Message {
   id: string

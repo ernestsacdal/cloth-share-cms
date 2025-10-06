@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation"
 import { NotificationsDropdown } from "@/components/notifications-dropdown"
 import { useAuth } from "@/contexts/AuthContext"
 import * as itemsApi from "@/lib/api/items"
+import { AccountDropdown } from "@/components/account-dropdown"
 
 export default function BrowsePage() {
   const { isAuthenticated } = useAuth()
@@ -196,12 +197,8 @@ export default function BrowsePage() {
                     <span className="hidden sm:inline">Favorites</span>
                   </Link>
                 </Button>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/profile">
-                    <User className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Account</span>
-                  </Link>
-                </Button>
+                                    <AccountDropdown />
+
               </>
             ) : (
               <>

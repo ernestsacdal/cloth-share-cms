@@ -8,6 +8,7 @@ import { Shirt, User, Heart, Trash2, ArrowLeft, ShoppingCart } from "lucide-reac
 import Link from "next/link"
 import { NotificationsDropdown } from "@/components/notifications-dropdown"
 import Image from "next/image"
+import { AccountDropdown } from "@/components/account-dropdown"
 
 interface FavoriteItem {
   id: string

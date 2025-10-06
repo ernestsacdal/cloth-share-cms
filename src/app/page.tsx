@@ -7,6 +7,8 @@ import { Heart, Recycle, Users, ArrowRight, Shirt, Package, MapPin, MessageCircl
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { NotificationsDropdown } from "@/components/notifications-dropdown"
+import { AccountDropdown } from "@/components/account-dropdown"
+
 
 export default function LandingPage() {
   
@@ -58,12 +60,7 @@ export default function LandingPage() {
                         <span className="hidden sm:inline">Favorites</span>
                       </Link>
                     </Button>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href="/profile">
-                        <UserIcon className="h-4 w-4 mr-2" />
-                        <span className="hidden sm:inline">Account</span>
-                      </Link>
-                    </Button>
+                    <AccountDropdown />
                   </div>
                 </>
               ) : (

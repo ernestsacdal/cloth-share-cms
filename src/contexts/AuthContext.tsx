@@ -100,6 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
     // Logout function
+    // Logout function
     const logout = async () => {
         try {
             await authApi.logout();
@@ -111,10 +112,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             localStorage.removeItem('refreshToken');
             setUser(null);
 
-            // Redirect to login
-            router.push('/login');
+            // Redirect to landing page (changed from /login)
+            router.push('/');
         }
     };
+
 
     return (
         <AuthContext.Provider

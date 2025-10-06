@@ -18,6 +18,8 @@ import ImageUpload from "@/components/ImageUpload"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import * as itemsApi from "@/lib/api/items"
+import { AccountDropdown } from "@/components/account-dropdown"
+
 
 const steps = [
   { id: 1, title: "Item Details", description: "Tell us about your item" },
@@ -164,12 +166,8 @@ export default function PostPage() {
           </div>
           <div className="flex items-center gap-3">
             <NotificationsDropdown />
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/profile">
-                <User className="h-4 w-4 mr-2" />
-                Account
-              </Link>
-            </Button>
+            <AccountDropdown />
+
           </div>
         </div>
       </header>
