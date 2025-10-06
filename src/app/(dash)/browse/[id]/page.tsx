@@ -388,7 +388,7 @@ export default function ItemDetailPage({ params }: { params: Promise<{ id: strin
               {isOwner ? (
                 // Owner buttons
                 <Button variant="outline" size="lg" className="flex-1">
-                  Manage Item
+                  <Link href={`/profile/items`}>Manage Item</Link>
                 </Button>
               ) : (
                 // Non-owner buttons

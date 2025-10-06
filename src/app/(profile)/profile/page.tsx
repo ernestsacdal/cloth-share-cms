@@ -31,7 +31,7 @@ import * as reviewsApi from "@/lib/api/reviews"
 import * as itemsApi from "@/lib/api/items"
 
 export default function ProfilePage() {
-   const { isAuthenticated, user: authUser, isLoading: authLoading } = useAuth()
+  const { isAuthenticated, user: authUser, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("overview")
   const [userData, setUserData] = useState<usersApi.User | null>(null)
@@ -50,29 +50,29 @@ export default function ProfilePage() {
     }
 
 
-const fetchProfileData = async () => {
-  try {
-    setIsLoading(true)
-    setError(null)
+    const fetchProfileData = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
 
-    // Fetch user profile
-    const userProfile = await usersApi.getCurrentUser()
-    setUserData(userProfile)
+        // Fetch user profile
+        const userProfile = await usersApi.getCurrentUser()
+        setUserData(userProfile)
 
-    // Fetch user's reviews
-    const userReviews = await reviewsApi.getUserReviews(userProfile.id)
-    setReviews(userReviews.reviews)
+        // Fetch user's reviews
+        const userReviews = await reviewsApi.getUserReviews(userProfile.id)
+        setReviews(userReviews.reviews)
 
-    // Fetch user's items - ✅ USE getMyItems() instead
-    const userItems = await itemsApi.getMyItems()
-    setPostedItems(userItems)
-  } catch (err) {
-    console.error('Error fetching profile:', err)
-    setError('Failed to load profile')
-  } finally {
-    setIsLoading(false)
-  }
-}
+        // Fetch user's items - ✅ USE getMyItems() instead
+        const userItems = await itemsApi.getMyItems()
+        setPostedItems(userItems)
+      } catch (err) {
+        console.error('Error fetching profile:', err)
+        setError('Failed to load profile')
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
 
     fetchProfileData()
@@ -276,11 +276,10 @@ const fetchProfileData = async () => {
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
                           key={star}
-                          className={`h-5 w-5 ${
-                            star <= Math.round(Number(userData.averageRating))
+                          className={`h-5 w-5 ${star <= Math.round(Number(userData.averageRating))
                               ? "fill-accent text-accent"
                               : "text-muted"
-                          }`}
+                            }`}
                         />
                       ))}
                     </div>
@@ -295,8 +294,8 @@ const fetchProfileData = async () => {
                           value={
                             userData.reviewCount > 0
                               ? (ratingDistribution[rating as keyof typeof ratingDistribution] /
-                                  userData.reviewCount) *
-                                100
+                                userData.reviewCount) *
+                              100
                               : 0
                           }
                           className="flex-1"
@@ -339,9 +338,8 @@ const fetchProfileData = async () => {
                                   {[1, 2, 3, 4, 5].map((star) => (
                                     <Star
                                       key={star}
-                                      className={`h-3 w-3 ${
-                                        star <= review.rating ? "fill-accent text-accent" : "text-muted"
-                                      }`}
+                                      className={`h-3 w-3 ${star <= review.rating ? "fill-accent text-accent" : "text-muted"
+                                        }`}
                                     />
                                   ))}
                                 </div>
@@ -413,7 +411,7 @@ const fetchProfileData = async () => {
                           </div>
                         </div>
                         <Button size="sm" variant="outline" asChild>
-                          <Link href={`/browse/${item.id}`}>Manage</Link>
+                          <Link href={`/profile/items`}>Manage</Link>
                         </Button>
                       </div>
                     </CardContent>
