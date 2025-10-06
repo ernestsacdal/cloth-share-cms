@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,14 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
-import { Shirt, ArrowLeft, ArrowRight, MapPin, Check, User, Loader2, Clock } from "lucide-react"
+import { Shirt, ArrowLeft, ArrowRight, Upload, X, Camera, MapPin, Clock, Check, User } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { NotificationsDropdown } from "@/components/notifications-dropdown"
-import ImageUpload from "@/components/ImageUpload"
-import { useAuth } from "@/contexts/AuthContext"
-import { useRouter } from "next/navigation"
-import * as itemsApi from "@/lib/api/items"
+
 
 const steps = [
   { id: 1, title: "Item Details", description: "Tell us about your item" },
@@ -27,12 +24,8 @@ const steps = [
 ]
 
 export default function PostPage() {
-  const { isAuthenticated, isLoading } = useAuth()
-  const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -55,101 +48,30 @@ export default function PostPage() {
 
   const progress = (currentStep / steps.length) * 100
 
-  // Auth protection
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/login')
-    }
-  }, [isAuthenticated, isLoading, router])
-
-  // Validation for each step
-  const canProceedStep1 = formData.title && formData.description.length >= 20 && formData.category && formData.size && formData.condition
-  const canProceedStep2 = formData.photos.length >= 1
-  const canProceedStep3 = formData.pickupLocation && formData.availability.length > 0
-
   const handleNext = () => {
-    if (currentStep === 1 && !canProceedStep1) {
-      setError("Please fill in all required fields in Step 1 (Description must be at least 20 characters)")
-      return
-    }
-    if (currentStep === 2 && !canProceedStep2) {
-      setError("Please upload at least 1 photo")
-      return
-    }
-    if (currentStep === 3 && !canProceedStep3) {
-      setError("Please fill in pickup location and select at least one availability time")
-      return
-    }
-    
-    setError(null)
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1)
     }
   }
 
   const handlePrevious = () => {
-    setError(null)
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
     }
   }
 
   const handleSubmit = async () => {
-    try {
-      setIsSubmitting(true)
-      setError(null)
+    setIsSubmitting(true)
+    console.log("[v0] Submitting item:", formData)
 
-      // Prepare data for API
-      const itemData: itemsApi.CreateItemData = {
-        title: formData.title,
-        brand: formData.brand || undefined,
-        description: formData.description,
-        category: formData.category,
-        size: formData.size,
-        condition: formData.condition,
-        color: formData.color || undefined,
-        measurementChest: formData.measurements.chest || undefined,
-        measurementLength: formData.measurements.length || undefined,
-        measurementSleeves: formData.measurements.sleeves || undefined,
-        images: formData.photos,
-        pickupLocation: formData.pickupLocation,
-        pickupInstructions: formData.pickupInstructions || undefined,
-        availability: formData.availability,
-        meetingPreference: formData.meetingPreference || undefined,
-      }
+    await new Promise((resolve) => setTimeout(resolve, 2000))
 
-      // Create item
-      const createdItem = await itemsApi.createItem(itemData)
+    console.log("[v0] Item posted successfully")
+    setIsSubmitting(false)
 
-      // Redirect to item detail page
-      router.push(`/browse/${createdItem.id}`)
-    } catch (err: any) {
-      console.error('Error creating item:', err)
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to create item'
-      setError(errorMessage)
-    } finally {
-      setIsSubmitting(false)
-    }
+    window.location.href = "/post/success"
   }
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-accent mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Not authenticated
-  if (!isAuthenticated) {
-    return null
-  }
-
-  // Main page content
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -161,7 +83,7 @@ export default function PostPage() {
               <span className="text-2xl font-bold text-foreground">ClothShare</span>
             </Link>
           </div>
-          <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3">
             <NotificationsDropdown />
             <Button variant="ghost" size="sm" asChild>
               <Link href="/profile">
@@ -228,13 +150,6 @@ export default function PostPage() {
           </div>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg text-destructive">
-            {error}
-          </div>
-        )}
-
         {/* Step Content */}
         <Card>
           <CardHeader>
@@ -267,7 +182,7 @@ export default function PostPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description * (min 20 characters)</Label>
+                  <Label htmlFor="description">Description *</Label>
                   <Textarea
                     id="description"
                     placeholder="Describe the item, its condition, why you're sharing it, and any special details..."
@@ -275,7 +190,6 @@ export default function PostPage() {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   />
-                  <p className="text-sm text-muted-foreground">{formData.description.length} characters</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -289,14 +203,14 @@ export default function PostPage() {
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="JACKETS">Jackets & Coats</SelectItem>
-                        <SelectItem value="DRESSES">Dresses</SelectItem>
-                        <SelectItem value="TOPS">Tops & Shirts</SelectItem>
-                        <SelectItem value="BOTTOMS">Pants & Skirts</SelectItem>
-                        <SelectItem value="SHOES">Shoes</SelectItem>
-                        <SelectItem value="ACCESSORIES">Accessories</SelectItem>
-                        <SelectItem value="SWEATERS">Sweaters & Knitwear</SelectItem>
-                        <SelectItem value="ACTIVEWEAR">Activewear</SelectItem>
+                        <SelectItem value="jackets">Jackets & Coats</SelectItem>
+                        <SelectItem value="dresses">Dresses</SelectItem>
+                        <SelectItem value="tops">Tops & Shirts</SelectItem>
+                        <SelectItem value="bottoms">Pants & Skirts</SelectItem>
+                        <SelectItem value="shoes">Shoes</SelectItem>
+                        <SelectItem value="accessories">Accessories</SelectItem>
+                        <SelectItem value="sweaters">Sweaters & Knitwear</SelectItem>
+                        <SelectItem value="activewear">Activewear</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -307,13 +221,13 @@ export default function PostPage() {
                         <SelectValue placeholder="Select size" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="XS">XS</SelectItem>
-                        <SelectItem value="S">S</SelectItem>
-                        <SelectItem value="M">M</SelectItem>
-                        <SelectItem value="L">L</SelectItem>
-                        <SelectItem value="XL">XL</SelectItem>
-                        <SelectItem value="XXL">XXL</SelectItem>
-                        <SelectItem value="ONE_SIZE">One Size</SelectItem>
+                        <SelectItem value="xs">XS</SelectItem>
+                        <SelectItem value="s">S</SelectItem>
+                        <SelectItem value="m">M</SelectItem>
+                        <SelectItem value="l">L</SelectItem>
+                        <SelectItem value="xl">XL</SelectItem>
+                        <SelectItem value="xxl">XXL</SelectItem>
+                        <SelectItem value="one-size">One Size</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -327,11 +241,10 @@ export default function PostPage() {
                         <SelectValue placeholder="Select condition" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="LIKE_NEW">Like New</SelectItem>
-                        <SelectItem value="EXCELLENT">Excellent</SelectItem>
-                        <SelectItem value="VERY_GOOD">Very Good</SelectItem>
-                        <SelectItem value="GOOD">Good</SelectItem>
-                        <SelectItem value="FAIR">Fair</SelectItem>
+                        <SelectItem value="like-new">Like New</SelectItem>
+                        <SelectItem value="very-good">Very Good</SelectItem>
+                        <SelectItem value="good">Good</SelectItem>
+                        <SelectItem value="fair">Fair</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -395,11 +308,62 @@ export default function PostPage() {
 
             {/* Step 2: Photos */}
             {currentStep === 2 && (
-              <ImageUpload
-                maxFiles={5}
-                onUploadComplete={(urls) => setFormData({ ...formData, photos: urls })}
-                existingImages={formData.photos}
-              />
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="border-2 border-dashed border-border rounded-lg p-12 hover:border-accent transition-colors">
+                    <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Upload Photos</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Add at least 3 photos showing different angles of your item
+                    </p>
+                    <Button>
+                      <Camera className="h-4 w-4 mr-2" />
+                      Choose Photos
+                    </Button>
+                  </div>
+                </div>
+
+                {formData.photos.length > 0 && (
+                  <div>
+                    <Label className="text-base font-medium">Uploaded Photos ({formData.photos.length})</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                      {formData.photos.map((photo, index) => (
+                        <div key={index} className="relative group">
+                          <div className="aspect-square relative overflow-hidden rounded-lg bg-muted">
+                            <Image
+                              src={photo || "/placeholder.svg"}
+                              alt={`Photo ${index + 1}`}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => {
+                              const newPhotos = formData.photos.filter((_, i) => i !== index)
+                              setFormData({ ...formData, photos: newPhotos })
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h4 className="font-medium mb-2">Photo Tips</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Take photos in good lighting</li>
+                    <li>• Show the item from multiple angles</li>
+                    <li>• Include close-ups of any details or flaws</li>
+                    <li>• Use a clean, uncluttered background</li>
+                  </ul>
+                </div>
+              </div>
             )}
 
             {/* Step 3: Pickup Info */}
@@ -476,10 +440,10 @@ export default function PostPage() {
                       <SelectValue placeholder="How do you prefer to meet?" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="PUBLIC_PLACE">Public place (coffee shop, mall, etc.)</SelectItem>
-                      <SelectItem value="MY_PLACE">My doorstep/building entrance</SelectItem>
-                      <SelectItem value="YOUR_PLACE">Near my workplace</SelectItem>
-                      <SelectItem value="FLEXIBLE">I'm flexible</SelectItem>
+                      <SelectItem value="public-place">Public place (coffee shop, mall, etc.)</SelectItem>
+                      <SelectItem value="doorstep">My doorstep/building entrance</SelectItem>
+                      <SelectItem value="workplace">Near my workplace</SelectItem>
+                      <SelectItem value="flexible">I'm flexible</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -497,7 +461,7 @@ export default function PostPage() {
                       <div>
                         <h4 className="font-medium text-sm text-muted-foreground mb-1">ITEM DETAILS</h4>
                         <p className="font-medium text-lg">{formData.title || "Untitled Item"}</p>
-                        <div className="flex gap-2 mt-2 flex-wrap">
+                        <div className="flex gap-2 mt-2">
                           {formData.category && <Badge variant="secondary">{formData.category}</Badge>}
                           {formData.size && <Badge variant="outline">{formData.size}</Badge>}
                           {formData.condition && <Badge variant="outline">{formData.condition}</Badge>}
@@ -530,10 +494,10 @@ export default function PostPage() {
                       <h4 className="font-medium text-sm text-muted-foreground mb-2">PHOTOS</h4>
                       {formData.photos.length > 0 ? (
                         <div className="grid grid-cols-3 gap-2">
-                          {formData.photos.slice(0, 6).map((photo, index) => (
+                          {formData.photos.slice(0, 3).map((photo, index) => (
                             <div key={index} className="aspect-square relative overflow-hidden rounded bg-muted">
                               <Image
-                                src={photo}
+                                src={photo || "/placeholder.svg"}
                                 alt={`Photo ${index + 1}`}
                                 fill
                                 className="object-cover"
@@ -579,7 +543,7 @@ export default function PostPage() {
             <Button onClick={handleSubmit} className="bg-accent hover:bg-accent/90" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-background border-t-transparent" />
                   Publishing...
                 </>
               ) : (
@@ -591,6 +555,20 @@ export default function PostPage() {
             </Button>
           )}
         </div>
+
+        {isSubmitting && (
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+            <Card className="p-8 max-w-md">
+              <div className="text-center space-y-4">
+                <div className="h-16 w-16 mx-auto animate-spin rounded-full border-4 border-accent border-t-transparent" />
+                <h3 className="text-xl font-semibold">Posting Your Item...</h3>
+                <p className="text-muted-foreground">
+                  We're uploading your photos and creating your listing. This will only take a moment.
+                </p>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   )
