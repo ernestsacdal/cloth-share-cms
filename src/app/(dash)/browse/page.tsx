@@ -348,7 +348,7 @@ const mockListings = [
 ]
 
 export default function BrowsePage() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const nextRouter = useNextRouter();
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")

@@ -6,137 +6,138 @@ import * as authApi from '@/lib/api/auth';
 import type { User, SignUpData, LoginData } from '@/lib/api/auth';
 
 interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (data: LoginData) => Promise<void>;
-  signUp: (data: SignUpData) => Promise<void>;
-  logout: () => Promise<void>;
-  checkAuth: () => Promise<void>;
+    user: User | null;
+    isAuthenticated: boolean;
+    isLoading: boolean;
+    login: (data: LoginData) => Promise<void>;
+    signUp: (data: SignUpData) => Promise<void>;
+    logout: () => Promise<void>;
+    checkAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
 
-  const isAuthenticated = !!user;
+    const isAuthenticated = !!user;
 
-  // Check if user is authenticated on mount
-  const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
+    // Check if user is authenticated on mount
+    const checkAuth = async () => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                setIsLoading(false);
+                return;
+            }
 
-      // Fetch current user
-      const currentUser = await authApi.getCurrentUser();
-      setUser(currentUser);
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      // Clear invalid tokens
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+            // Fetch current user
+            const currentUser = await authApi.getCurrentUser();
+            setUser(currentUser);
+        } catch (error) {
+            console.error('Auth check failed:', error);
+            // Clear invalid tokens
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            setUser(null);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+    useEffect(() => {
+        checkAuth();
+    }, []);
 
-  // Login function
- // Login function
-const login = async (data: LoginData) => {
-  try {
-    const response = await authApi.login(data);
+    // Login function
+    // Login function
+    const login = async (data: LoginData) => {
+        try {
+            const response = await authApi.login(data);
 
-    // Store tokens
-    localStorage.setItem('accessToken', response.accessToken);
-    localStorage.setItem('refreshToken', response.refreshToken);
+            // Store tokens
+            localStorage.setItem('accessToken', response.accessToken);
+            localStorage.setItem('refreshToken', response.refreshToken);
 
-    // Set user
-    setUser(response.user as User);
+            // Set user
+            setUser(response.user as User);
 
-    // Redirect to browse
-    router.push('/browse');
-  } catch (error: any) {
-    
-    // Extract API error message
-    const apiMessage = error.response?.data?.message || error.message;
-    throw new Error(apiMessage);
-  }
-};
+            // Redirect to browse
+            router.push('/browse');
+        } catch (error: any) {
 
-// Sign up function
-const signUp = async (data: SignUpData) => {
-  try {
-    const response = await authApi.signUp(data);
+            // Extract API error message
+            const apiMessage = error.response?.data?.message || error.message;
+            throw new Error(apiMessage);
+        }
+    };
 
-    // Store tokens
-    localStorage.setItem('accessToken', response.accessToken);
-    localStorage.setItem('refreshToken', response.refreshToken);
+    // Sign up function
+    const signUp = async (data: SignUpData) => {
+        try {
+            const response = await authApi.signUp(data);
 
-    // Set user
-    setUser(response.user as User);
+            // Store tokens
+            localStorage.setItem('accessToken', response.accessToken);
+            localStorage.setItem('refreshToken', response.refreshToken);
 
-    // Redirect to browse
-    router.push('/browse');
-  } catch (error: any) {
-    console.error('Sign up failed:', error);
-    
-    // Extract API error message
-    const apiMessage = error.response?.data?.message || error.message;
-    throw new Error(apiMessage);
-  }
-};
+            // Set user
+            setUser(response.user as User);
+
+            // Redirect to browse
+            router.push('/browse');
+        } catch (error) {
+            const apiMessage = error instanceof Error ? error.message : 'An error occurred';
+            if (error && typeof error === 'object' && 'response' in error) {
+                const err = error as { response?: { data?: { message?: string } } };
+                throw new Error(err.response?.data?.message || apiMessage);
+            }
+            throw new Error(apiMessage);
+        }
+    };
 
 
-  // Logout function
-  const logout = async () => {
-    try {
-      await authApi.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Clear tokens and user
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      setUser(null);
+    // Logout function
+    const logout = async () => {
+        try {
+            await authApi.logout();
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            // Clear tokens and user
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            setUser(null);
 
-      // Redirect to login
-      router.push('/login');
-    }
-  };
+            // Redirect to login
+            router.push('/login');
+        }
+    };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated,
-        isLoading,
-        login,
-        signUp,
-        logout,
-        checkAuth,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+    return (
+        <AuthContext.Provider
+            value={{
+                user,
+                isAuthenticated,
+                isLoading,
+                login,
+                signUp,
+                logout,
+                checkAuth,
+            }}
+        >
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
 // Hook to use auth context
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within AuthProvider');
+    }
+    return context;
 };

@@ -554,7 +554,7 @@ export default function PostPage() {
                     <span className="font-medium text-sm">Ready to Share!</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Your item will be visible to the ClothShare community. You'll receive notifications when someone is
+                    Your item will be visible to the ClothShare community. You&apos;ll receive notifications when someone is
                     interested.
                   </p>
                 </div>
