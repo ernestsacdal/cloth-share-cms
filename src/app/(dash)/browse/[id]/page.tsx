@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { Shirt, ArrowLeft, MapPin, Calendar, Heart, MessageCircle, Flag, Share2, User, Loader2 } from "lucide-react"
+import { Shirt, ArrowLeft, MapPin, Calendar, MessageCircle, Flag, Share2, User, Loader2, Clock } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -20,67 +20,96 @@ import {
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-
-const clothingItem = {
-  id: 1,
-  title: "Vintage Denim Jacket",
-  size: "M",
-  condition: "Like New",
-  location: "Downtown",
-  distance: "Downtown Coffee Shop",
-  postedBy: "Sarah M.",
-  postedDate: "10/5/2025",
-  image: "/vintage-denim-jacket.png",
-  images: ["/vintage-denim-jacket-front.png", "/vintage-denim-jacket-back.png", "/vintage-denim-jacket-detail.png"],
-  category: "Jackets",
-  brand: "Levi's",
-  description:
-    "Classic vintage denim jacket in excellent condition. This beautiful piece has been well-maintained and shows minimal signs of wear. Perfect for layering during transitional seasons. The jacket features the classic Levi's styling with button closure and chest pockets. Originally purchased from a vintage boutique, it's been a favorite in my wardrobe but I'm moving and need to downsize. Would love to see it go to someone who will appreciate its timeless style!",
-  measurements: {
-    chest: "42 inches",
-    length: "24 inches",
-    sleeves: "25 inches",
-  },
-  pickupInstructions:
-    "Available for pickup weekdays after 6pm or weekends. I live near the downtown metro station. Happy to meet at a public location if preferred.",
-  user: {
-    name: "Sarah M.",
-    avatar: "/diverse-woman-avatar.png",
-    rating: 4.8,
-    itemsShared: 12,
-    joinedDate: "March 2023",
-  },
-}
+import { useAuth } from "@/contexts/AuthContext"
+import * as itemsApi from "@/lib/api/items"
 
 export default function ItemDetailPage({ params }: { params: { id: string } }) {
-
+  const { isAuthenticated } = useAuth()
   const router = useRouter()
+  const [item, setItem] = useState<itemsApi.Item | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [message, setMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showSuccess, setShowSuccess] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string>("")
 
-  const listing = clothingItem
-  const averageRating = 4.5
+  // Fetch item data
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login')
+      return
+    }
+
+    const fetchItem = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const itemData = await itemsApi.getItemById(params.id)
+        setItem(itemData)
+        setSelectedImage(itemData.images[0])
+      } catch (err) {
+        console.error('Error fetching item:', err)
+        setError('Item not found')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchItem()
+  }, [params.id, isAuthenticated, router])
 
   const handleSubmitRequest = async () => {
     if (!message.trim()) return
 
     setIsSubmitting(true)
 
-    // Simulate API call
+    // TODO: Implement claim/request API
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     setIsSubmitting(false)
     setIsModalOpen(false)
-    setShowSuccess(true)
-
-    // Hide success message after 3 seconds
-    setTimeout(() => {
-      setShowSuccess(false)
-      setMessage("")
-    }, 3000)
+    setMessage("")
+    
+    // Show success notification or redirect
+    alert('Request sent successfully!')
   }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    })
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-accent mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading item details...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error || !item) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <p className="text-destructive mb-4">{error || 'Item not found'}</p>
+          <Button asChild>
+            <Link href="/browse">Back to Browse</Link>
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -93,10 +122,6 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            {/* <Button variant="ghost" size="sm">
-              <Heart className="h-4 w-4 mr-2" />
-              Save
-            </Button> */}
             <Button variant="ghost" size="sm">
               <Share2 className="h-4 w-4 mr-2" />
               Share
@@ -122,27 +147,32 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
           <div className="space-y-4">
             <div className="aspect-square relative overflow-hidden rounded-lg bg-muted">
               <Image
-                src={clothingItem.image || "/placeholder.svg"}
-                alt={clothingItem.title}
+                src={selectedImage || item.images[0]}
+                alt={item.title}
                 fill
                 className="object-cover"
               />
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              {clothingItem.images.map((image, index) => (
-                <div
-                  key={index}
-                  className="aspect-square relative overflow-hidden rounded-lg bg-muted cursor-pointer hover:opacity-80 transition-opacity"
-                >
-                  <Image
-                    src={image || "/placeholder.svg"}
-                    alt={`${clothingItem.title} view ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              ))}
-            </div>
+            {item.images.length > 1 && (
+              <div className="grid grid-cols-3 gap-3">
+                {item.images.map((image, index) => (
+                  <div
+                    key={index}
+                    className={`aspect-square relative overflow-hidden rounded-lg bg-muted cursor-pointer hover:opacity-80 transition-opacity ${
+                      selectedImage === image ? 'ring-2 ring-accent' : ''
+                    }`}
+                    onClick={() => setSelectedImage(image)}
+                  >
+                    <Image
+                      src={image}
+                      alt={`${item.title} view ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Item Details */}
@@ -150,10 +180,10 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
             <div>
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground mb-2">{clothingItem.title}</h1>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Badge variant="secondary">{clothingItem.brand}</Badge>
-                    <Badge variant="outline">{clothingItem.category}</Badge>
+                  <h1 className="text-3xl font-bold text-foreground mb-2">{item.title}</h1>
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    {item.brand && <Badge variant="secondary">{item.brand}</Badge>}
+                    <Badge variant="outline">{item.category}</Badge>
                   </div>
                 </div>
                 <Button variant="outline" size="sm">
@@ -164,11 +194,11 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
               <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                 <div className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
-                  <span>{clothingItem.location}</span>
+                  <span>{item.pickupLocation}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  <span>Posted {clothingItem.postedDate}</span>
+                  <span>Posted {formatDate(item.createdAt)}</span>
                 </div>
               </div>
             </div>
@@ -181,34 +211,54 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Size</span>
-                  <Badge variant="secondary">{clothingItem.size}</Badge>
+                  <Badge variant="secondary">{item.size}</Badge>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Condition</span>
-                  <Badge variant="outline">{clothingItem.condition}</Badge>
+                  <Badge variant="outline">{item.condition.replace(/_/g, ' ')}</Badge>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Brand</span>
-                  <span className="font-medium">{clothingItem.brand}</span>
-                </div>
-                <Separator />
-                <div className="space-y-2">
-                  <h4 className="font-medium">Measurements</h4>
-                  <div className="text-sm space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Chest</span>
-                      <span>{clothingItem.measurements.chest}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Length</span>
-                      <span>{clothingItem.measurements.length}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Sleeves</span>
-                      <span>{clothingItem.measurements.sleeves}</span>
-                    </div>
+                {item.brand && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Brand</span>
+                    <span className="font-medium">{item.brand}</span>
                   </div>
-                </div>
+                )}
+                {item.color && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Color</span>
+                    <span className="font-medium">{item.color}</span>
+                  </div>
+                )}
+                
+                {/* Measurements */}
+                {(item.measurementChest || item.measurementLength || item.measurementSleeves) && (
+                  <>
+                    <Separator />
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Measurements</h4>
+                      <div className="text-sm space-y-1">
+                        {item.measurementChest && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Chest/Bust</span>
+                            <span>{item.measurementChest}</span>
+                          </div>
+                        )}
+                        {item.measurementLength && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Length</span>
+                            <span>{item.measurementLength}</span>
+                          </div>
+                        )}
+                        {item.measurementSleeves && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Sleeves</span>
+                            <span>{item.measurementSleeves}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -218,7 +268,7 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
                 <CardTitle className="text-lg">Description</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground leading-relaxed">{clothingItem.description}</p>
+                <p className="text-muted-foreground leading-relaxed">{item.description}</p>
               </CardContent>
             </Card>
 
@@ -227,8 +277,52 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
               <CardHeader>
                 <CardTitle className="text-lg">Pickup Information</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground leading-relaxed">{clothingItem.pickupInstructions}</p>
+              <CardContent className="space-y-3">
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 mt-1 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">Location</p>
+                    <p className="text-sm text-muted-foreground">{item.pickupLocation}</p>
+                  </div>
+                </div>
+                
+                {item.pickupInstructions && (
+                  <div className="flex items-start gap-2">
+                    <Clock className="h-4 w-4 mt-1 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">Instructions</p>
+                      <p className="text-sm text-muted-foreground">{item.pickupInstructions}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {item.availability && item.availability.length > 0 && (
+                  <div className="flex items-start gap-2">
+                    <Clock className="h-4 w-4 mt-1 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">Availability</p>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {item.availability.map((time, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {time}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {item.meetingPreference && (
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 mt-1 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">Meeting Preference</p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.meetingPreference.replace(/_/g, ' ')}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -240,18 +334,16 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
               <CardContent>
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={clothingItem.user.avatar || "/placeholder.svg"} />
+                    <AvatarImage src={item.user?.avatar || undefined} />
                     <AvatarFallback>
                       <User className="h-6 w-6" />
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <h4 className="font-medium">{clothingItem.user.name}</h4>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>★ {clothingItem.user.rating} rating</span>
-                      <span>{clothingItem.user.itemsShared} items shared</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">Member since {clothingItem.user.joinedDate}</p>
+                    <h4 className="font-medium">{item.user?.displayName || 'Anonymous'}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Member since {formatDate(item.createdAt)}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -264,25 +356,26 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
                 Claim This Item
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <Link href={`/messages?userId=${listing.id}&itemId=${listing.id}&itemName=${encodeURIComponent(listing.title)}`}>
-                  <span className="flex items-center">
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Message
-                  </span>
+                <Link
+                  href={`/messages?userId=${item.userId}&itemId=${item.id}&itemName=${encodeURIComponent(item.title)}`}
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Message
                 </Link>
               </Button>
-
             </div>
           </div>
         </div>
       </div>
+
+      {/* Claim Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Request Item</DialogTitle>
             <DialogDescription>
-              Send a message to {listing.user?.name} to request this item. Include why you'd like it and
-              when you can pick it up.
+              Send a message to {item.user?.displayName || 'the owner'} to request this item. Include why
+              you&apos;d like it and when you can pick it up.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -316,8 +409,6 @@ export default function ItemDetailPage({ params }: { params: { id: string } }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-
     </div>
   )
 }
